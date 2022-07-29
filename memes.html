@@ -1,0 +1,108 @@
+<html>
+
+<head>
+  <title>Meme Generator</title>
+  <link rel="stylesheet" href="style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+  <link href="https://fonts.googleapis.com/css?family=Bebas+Neue&display=swap" rel="stylesheet">
+</head>
+<script src="helper.js"></script>
+<body>
+
+  <h1>Welcome to the world of memes!</h1>
+
+  <div class="container">
+    <div class="creator">
+      <select id="meme-templates"></select>
+      <img id="selected-image">
+
+      <div class="boxes"></div>
+
+      <button id="generate-btn">Generate</button>
+      <button id="random" onclick="randomMeme()">Select random meme</button>
+    </div>
+
+    <div class="final-meme">
+      <img src="meme.jpg" id="meme-image">
+      <p id="meme-url">Meme url will appear here</p>
+    </div>
+  </div>
+
+  <script>
+    var memesArray, meme;
+
+    getMemes(showOptions);
+
+    function showOptions(response) {
+      console.log(response);
+      memesArray = response.data.memes;
+      for (c in memesArray) {
+        var optionTag = `<option value="${c}">
+                        ${memesArray[c].name}</option>`;
+        $('#meme-templates').append(optionTag);
+      }
+      $('#meme-templates').change(changeMeme);
+      changeMeme();
+    }
+
+    function changeMeme() {
+      var selected = $('#meme-templates').val();
+      meme = memesArray[selected];
+      $('#selected-image').attr('src', meme.url);
+      var boxes = meme.box_count;
+      var inputHtml = "<input type='text' placeholder='Enter meme text'>";
+      var allInputs = inputHtml.repeat(boxes);
+      $(".boxes").html(allInputs);
+    }
+
+    function randomMeme() {
+      var max = memesArray.length - 1;
+      var random = Math.random()*max;
+      var num = Math.floor(random);
+      $('#meme-templates').val(num)
+      $('#meme-templates').change();
+    }
+
+    $('#selected-image').click(nextMeme);
+
+    function nextMeme(){
+      var selected = $('#meme-templates').val();
+      var next = parseInt(selected) + 1;
+      if (next >= memesArray.length) {
+        next = 0;
+      }
+      $('#meme-templates').val(next);
+      $('#meme-templates').change();
+    }
+    
+    function generate() {
+      var inputBoxes = $('.boxes > input');
+      var textArray = [];
+      for (input of inputBoxes) {
+        var textObj = {
+          'text': $(input).val()
+        }
+        textArray.push(textObj);
+      }
+      console.log(textArray);
+      createMeme(meme.id, textArray, showMeme);
+    }
+    $('#generate-btn').click(generate);
+    
+    function showMeme(response) {
+      console.log(response);
+      if (response.success) {
+      var url = response.data.url;
+      $('#meme-image').attr('src', url);
+      $('#meme-url').text(url);
+      } else {
+      $('#meme-image').attr('src', 'error.jpg');
+      $('#meme-url').text("Unable to create a meme.");
+      }
+    }
+  </script>
+</body>
+
+</html>
+<script type="application/javascript" src="/share.js"></script>
